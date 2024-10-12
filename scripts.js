@@ -37,6 +37,9 @@ let currentGenre = 'all';
 let currentSortMethod = 'date';
 let currentPage = 1;
 
+let currentGenre = 'all';
+let currentSortMethod = 'date';
+
 // Función para normalizar el texto del género
 function normalizeGenre(genre) {
     return genre.toLowerCase()
@@ -69,6 +72,15 @@ function initializeElements() {
     if (!sortAlphabeticallyButton) console.error("Elemento 'sortAlphabetically' no encontrado");
     if (!sortByDateButton) console.error("Elemento 'sortByDate' no encontrado");
 }
+document.addEventListener('DOMContentLoaded', (event) => {
+    console.log("DOM completamente cargado y parseado");
+    initializeElements();
+    setupVideoForm();
+    setupEventListeners();
+    updateSortButtons();
+    console.log("Iniciando carga de videos...");
+    loadVideos();
+});
 // Función para manejar la navegación
 function handleNavigation() {
     const path = window.location.hash.slice(1); // Obtiene la ruta de la URL después del #
@@ -164,6 +176,7 @@ function loadHomePage() {
     document.getElementById('content').innerHTML = '<p>Página principal</p>';
 }
 // Función para cargar y mostrar videos
+
 async function loadVideos(isLoadMore = false) {
     console.log("Cargando videos - Género:", currentGenre, "Orden:", currentSortMethod);
     if (!videoList) {
@@ -197,11 +210,10 @@ async function loadVideos(isLoadMore = false) {
         }
 
         const querySnapshot = await getDocs(videosQuery);
+        
         if (querySnapshot.empty) {
             console.log("No se encontraron videos");
-            if (!isLoadMore) {
-                videoList.innerHTML = `<p>No se encontraron videos para el género: ${currentGenre}.</p>`;
-            }
+            videoList.innerHTML = `<p>No se encontraron videos${currentGenre !== 'all' ? ` para el género: ${currentGenre}` : ''}.</p>`;
             loadMoreButton.style.display = 'none';
         } else {
             querySnapshot.forEach((doc) => {
@@ -211,20 +223,15 @@ async function loadVideos(isLoadMore = false) {
                 videoList.appendChild(videoContainer);
             });
             lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-            loadMoreButton.style.display = 'block';
+            loadMoreButton.style.display = querySnapshot.size === pageSize ? 'block' : 'none';
         }
     } catch (error) {
         console.error("Error al cargar videos:", error);
-        videoList.innerHTML += "<p>Error al cargar videos. Por favor, intenta de nuevo más tarde.</p>";
+        videoList.innerHTML += `<p>Error al cargar videos: ${error.message}. Por favor, intenta de nuevo más tarde.</p>`;
     }
 
     lazyLoadImages();
 }
-querySnapshot.forEach((doc) => {
-        const videoData = doc.data();
-        const videoContainer = createVideoCard(videoData);
-        videoList.appendChild(videoContainer);
-    });
 
 // Función para crear un elemento de tarjeta de video
 function createVideoCard(videoData) {
@@ -239,7 +246,7 @@ function createVideoCard(videoData) {
     
     videoContainer.innerHTML = `
         <div class="image-container">
-            <img src="placeholder.jpg" data-src="${videoData.imageUrl}" alt="${safeTitle}" loading="lazy">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" data-src="${videoData.imageUrl}" alt="${safeTitle}" loading="lazy">
         </div>
         <h2 class="title">${safeTitle}</h2>
         <div class="info">${videoData.type} - ${videoData.genere}</div>
@@ -248,8 +255,6 @@ function createVideoCard(videoData) {
     
     return videoContainer;
 }
-
-
 // Función para sanear la entrada del usuario
 function sanitizeInput(input) {
     const div = document.createElement('div');
