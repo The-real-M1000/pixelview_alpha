@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - PixelView</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/movie-details.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 id="pixelview" onclick="window.location.href='/'">PixelView</h1>
+            <nav class="buttons">
+                <button onclick="window.location.href='/'">Inicio</button>
+                <button onclick="window.location.href='/donar'">Donar</button>
+                <button onclick="window.location.href='/whatsapp'">Canal de WhatsApp</button>
+                <button onclick="window.location.href='/contacto'">Contacto y soporte</button>
+            </nav>
+        </header>
+
+        <main class="movie-details">
+            <h1>{{title}}</h1>
+            <div class="movie-info">
+                <img src="{{imageUrl}}" alt="{{title}}">
+                <div class="info-text">
+                    <p><strong>Género:</strong> {{genere}}</p>
+                    <p><strong>Calificación:</strong> {{rating}}</p>
+                    <p><strong>Descripción:</strong> {{description}}</p>
+                    <div class="impus-dolor">
+                        <h3>Lore de Impus Dolor:</h3>
+                        <p>{{impusDolor}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="video-container">
+                <iframe src="{{videoUrl}}" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </main>
+
+        <footer>
+            PixelView © 2024
+        </footer>
+    </div>
+
+    <script src="/movie-details.js"></script>
+</body>
+</html>
