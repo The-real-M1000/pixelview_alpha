@@ -98,42 +98,20 @@ function isValidUrl(string) {
     }
 }
 
-// Función para subir video
-function setupVideoForm() {
-    if (videoForm) {
-        videoForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            if (!validateForm()) return;
-
-            const videoTitle = document.getElementById("videoTitle").value;
-            const videoUrl = document.getElementById("videoUrl").value;
-            const imageUrl = document.getElementById("imageUrl").value;
-            const videoType = document.getElementById("videoType").value;
-            const videoGenere = normalizeGenre(document.getElementById("videoGenere").value);
-
-            try {
-                const docId = videoTitle.toLowerCase().replace(/\s+/g, '-');
-                await setDoc(doc(db, "videos", docId), {
-                    title: videoTitle,
-                    videoUrl: videoUrl,
-                    imageUrl: imageUrl,
-                    type: videoType,
-                    genere: videoGenere,
-                    uploadDate: new Date().toISOString()
-                });
-
-                console.log("Video subido con género:", videoGenere);
-                alert("Video subido correctamente");
-                loadVideos();
-                videoForm.reset();
-            } catch (error) {
-                console.error("Error al subir el video: ", error);
-                alert("Error al subir el video. Por favor, intenta de nuevo.");
-            }
-        });
-    }
+async function uploadVideo(videoData) {
+    const docId = videoData.title.toLowerCase().replace(/\s+/g, '-');
+    await setDoc(doc(db, "videos", docId), {
+        title: videoData.title,
+        videoUrl: videoData.videoUrl,
+        imageUrl: videoData.imageUrl,
+        type: videoData.type,
+        genere: normalizeGenre(videoData.genere),
+        uploadDate: new Date().toISOString(),
+        description: videoData.description,
+        rating: videoData.rating,
+        impusDolor: videoData.impusDolor // Información relacionada con el lore de "Impus Dolor"
+    });
 }
-
 // Función para cargar y mostrar videos
 async function loadVideos(isLoadMore = false) {
     console.log("Cargando videos - Género:", currentGenre, "Orden:", currentSortMethod);
@@ -191,31 +169,34 @@ async function loadVideos(isLoadMore = false) {
 
     lazyLoadImages();
 }
+querySnapshot.forEach((doc) => {
+        const videoData = doc.data();
+        const videoContainer = createVideoCard(videoData);
+        videoList.appendChild(videoContainer);
+    });
 
 // Función para crear un elemento de tarjeta de video
 function createVideoCard(videoData) {
-    console.log("Creando tarjeta para:", videoData.title);
     const videoContainer = document.createElement("div");
     videoContainer.className = 'movie';
     videoContainer.setAttribute('tabindex', '0');
     videoContainer.setAttribute('role', 'button');
-    videoContainer.setAttribute('aria-label', `Ver video: ${videoData.title}`);
+    videoContainer.setAttribute('aria-label', `Ver detalles de: ${videoData.title}`);
     
     const safeTitle = sanitizeInput(videoData.title);
+    const urlSlug = safeTitle.toLowerCase().replace(/\s+/g, '-');
+    
     videoContainer.innerHTML = `
         <div class="image-container">
             <img src="placeholder.jpg" data-src="${videoData.imageUrl}" alt="${safeTitle}" loading="lazy">
         </div>
         <h2 class="title">${safeTitle}</h2>
         <div class="info">${videoData.type} - ${videoData.genere}</div>
+        <a href="/pelicula/${urlSlug}" class="details-link">Ver detalles</a>
     `;
-    videoContainer.addEventListener('click', () => {
-        window.open(videoData.videoUrl, '_blank');
-    });
-
+    
     return videoContainer;
 }
-
 // Función para sanear la entrada del usuario
 function sanitizeInput(input) {
     const div = document.createElement('div');
