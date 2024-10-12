@@ -69,6 +69,16 @@ function initializeElements() {
     if (!sortAlphabeticallyButton) console.error("Elemento 'sortAlphabetically' no encontrado");
     if (!sortByDateButton) console.error("Elemento 'sortByDate' no encontrado");
 }
+// Función para manejar la navegación
+function handleNavigation() {
+    const path = window.location.hash.slice(1); // Obtiene la ruta de la URL después del #
+    if (path.startsWith('/pelicula/')) {
+        const movieSlug = path.split('/')[2];
+        loadMovieDetails(movieSlug);
+    } else {
+        loadHomePage();
+    }
+}
 
 // Función para validar el formulario
 function validateForm() {
@@ -111,6 +121,47 @@ async function uploadVideo(videoData) {
         rating: videoData.rating,
         impusDolor: videoData.impusDolor // Información relacionada con el lore de "Impus Dolor"
     });
+}
+async function loadMovieDetails(movieSlug) {
+    try {
+        const docRef = doc(db, "videos", movieSlug);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const movieData = docSnap.data();
+            document.getElementById('content').innerHTML = `
+                <div class="movie-details">
+                    <h1>${movieData.title}</h1>
+                    <div class="movie-info">
+                        <img src="${movieData.imageUrl}" alt="${movieData.title}">
+                        <div class="info-text">
+                            <p><strong>Género:</strong> ${movieData.genere}</p>
+                            <p><strong>Calificación:</strong> ${movieData.rating}</p>
+                            <p><strong>Descripción:</strong> ${movieData.description}</p>
+                            <div class="impus-dolor">
+                                <h3>Lore de Impus Dolor:</h3>
+                                <p>${movieData.impusDolor}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-container">
+                        <iframe src="${movieData.videoUrl}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            `;
+        } else {
+            document.getElementById('content').innerHTML = '<p>Película no encontrada</p>';
+        }
+    } catch (error) {
+        console.error("Error al cargar los detalles de la película:", error);
+        document.getElementById('content').innerHTML = '<p>Error al cargar la película</p>';
+    }
+}
+// Función para cargar la página principal
+function loadHomePage() {
+    // Aquí puedes poner el código para cargar la lista de películas
+    // Por ahora, solo mostraremos un mensaje
+    document.getElementById('content').innerHTML = '<p>Página principal</p>';
 }
 // Función para cargar y mostrar videos
 async function loadVideos(isLoadMore = false) {
@@ -192,11 +243,13 @@ function createVideoCard(videoData) {
         </div>
         <h2 class="title">${safeTitle}</h2>
         <div class="info">${videoData.type} - ${videoData.genere}</div>
-        <a href="/pelicula/${urlSlug}" class="details-link">Ver detalles</a>
+        <a href="#/pelicula/${urlSlug}" class="details-link">Ver detalles</a>
     `;
     
     return videoContainer;
 }
+
+
 // Función para sanear la entrada del usuario
 function sanitizeInput(input) {
     const div = document.createElement('div');
@@ -356,6 +409,8 @@ function lazyLoadImages() {
 
     images.forEach(img => observer.observe(img));
 }
+    // Escuchar cambios en la URL
+window.addEventListener('hashchange', handleNavigation);
 
 // Inicialización principal
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -365,6 +420,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupEventListeners();
     updateSortButtons(); // Actualizar los botones de ordenación al inicio
     loadVideos();
+
+
+// Cargar la página correcta al iniciar
+document.addEventListener('DOMContentLoaded', handleNavigation);
 
     // Añadir efecto ripple a todos los botones
     const buttons = document.getElementsByTagName("button");
